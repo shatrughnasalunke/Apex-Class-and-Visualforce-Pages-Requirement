@@ -1,116 +1,100 @@
 /Creating new case from chat by accepting multiple parameter/
 
-public class CreateCaseForMultipleParameter
-{  
-public class CaseOutput
-{
-     @InvocableVariable(required= true)
-     public String Status;
-     @InvocableVariable(required= true)
-     public String CaseNumber;
-     @InvocableVariable(required= true)
-     public String OwnerId; 
-     @InvocableVariable(required= true)
-     public String Subject;
-     @InvocableVariable(required= true)
-     public String Description; 
-}
-public class ChatBotCaseInput
-{
-     @InvocableVariable(required= true)
-     public String FirstName;
-     @InvocableVariable(required= true)
-     public String LastName;
-     @InvocableVariable(required= true)
-     public String EmailId;
-     @InvocableVariable(required= true)
-     public String Subject;
-     @InvocableVariable(required= true)
-     public String Description;
-}
-@InvocableMethod
-public static List<CaseOutput> createCase(List<ChatBotCaseInput> caseinput)
-{   List<CaseOutput> getCaseStatus=new List<CaseOutput>();
-   System.debug('caseinput---------->'+caseinput); 
-   List<Case> d=new List<Case>();
-   Map<String,String> firstNameList=new Map<String,String>();
-   List<Contact> Ls=new List<Contact>();
-   String getfirstName;
-   System.debug('getfirstName--->'+getfirstName);
-   for(ChatBotCaseInput cc:caseinput)
-   {    
-      firstNameList.put(cc.EmailId,cc.FirstName); 
-          getfirstName=firstNameList.get(cc.EmailId);
-   }
-   List<Contact> ff=[SELECT Email, Title, Id, LastName, FirstName, Name FROM Contact where Email=:getfirstName];    
-   System.debug('ff--->'+ff);
-   if(ff.size()>0)
-   {     
-    if(caseinput.size()>0)
-    { 
-          for(ChatBotCaseInput cc:caseinput)
-          {  
-            Case c=new Case();
-            c.ContactId=ff[0].id;
-            c.subject=cc.Subject;
-            c.description=cc.Description; 
-            c.Status='New';
-            c.Origin='Phone';
-            d.add(c);
-          }
-
-          if(d.size()>0)
-      {
-          insert d;
+public class CreateCaseForMultipleParameter {
+    public class CaseOutput {
+        @InvocableVariable(required = true)
+        public String Status;
+        @InvocableVariable(required = true)
+        public String CaseNumber;
+        @InvocableVariable(required = true)
+        public String OwnerId;
+        @InvocableVariable(required = true)
+        public String Subject;
+        @InvocableVariable(required = true)
+        public String Description;
+    }
+    public class ChatBotCaseInput {
+        @InvocableVariable(required = true)
+        public String FirstName;
+        @InvocableVariable(required = true)
+        public String LastName;
+        @InvocableVariable(required = true)
+        public String EmailId;
+        @InvocableVariable(required = true)
+        public String Subject;
+        @InvocableVariable(required = true)
+        public String Description;
+    }
+    @InvocableMethod
+    public static List < CaseOutput > createCase(List < ChatBotCaseInput > caseinput) {
+        List < CaseOutput > getCaseStatus = new List < CaseOutput > ();
+        System.debug('caseinput---------->' + caseinput);
+        List < Case > d = new List < Case > ();
+        Map < String, String > firstNameList = new Map < String, String > ();
+        List < Contact > Ls = new List < Contact > ();
+        String getfirstName;
+        System.debug('getfirstName--->' + getfirstName);
+        for (ChatBotCaseInput cc: caseinput) {
+            firstNameList.put(cc.EmailId, cc.FirstName);
+            getfirstName = firstNameList.get(cc.EmailId);
         }
-      }	
-   }
-   else
-   {
-        if(caseinput.size()>0)
-         { 
-          for(ChatBotCaseInput cc:caseinput)
-          {     
-            Contact newContact=new Contact();
-            newContact.firstName=cc.FirstName;
-            newContact.LastName=cc.LastName;
-            newContact.Email=cc.EmailId;  
-            Ls.add(newContact);
-          } 
+        List < Contact > ff = [SELECT Email, Title, Id, LastName, FirstName, Name FROM Contact WHERE Email =: getfirstName];
+        System.debug('ff--->' + ff);
+        if (ff.size() > 0) {
+            if (caseinput.size() > 0) {
+                for (ChatBotCaseInput cc: caseinput) {
+                    Case c = new Case();
+                    c.ContactId = ff[0].id;
+                    c.subject = cc.Subject;
+                    c.description = cc.Description;
+                    c.Status = 'New';
+                    c.Origin = 'Phone';
+                    d.add(c);
+                }
 
-         insert Ls;    
-         for(ChatBotCaseInput cc:caseinput)
-         {
-            Case c=new Case();
-            c.ContactId=Ls[0].id;
-            c.subject=cc.Subject;
-            c.description=cc.Description; 
-            c.Status='Medium';
-            c.Origin='Phone';
-            d.add(c);
-          }
-          if(d.size()>0)
-      {
-          insert d;
+                if (d.size() > 0) {
+                    insert d;
+                }
+            }
+        } else {
+            if (caseinput.size() > 0) {
+                for (ChatBotCaseInput cc: caseinput) {
+                    Contact newContact = new Contact();
+                    newContact.firstName = cc.FirstName;
+                    newContact.LastName = cc.LastName;
+                    newContact.Email = cc.EmailId;
+                    Ls.add(newContact);
+                }
+
+                insert Ls;
+                for (ChatBotCaseInput cc: caseinput) {
+                    Case c = new Case();
+                    c.ContactId = Ls[0].id;
+                    c.subject = cc.Subject;
+                    c.description = cc.Description;
+                    c.Status = 'Medium';
+                    c.Origin = 'Phone';
+                    d.add(c);
+                }
+                if (d.size() > 0) {
+                    insert d;
+                }
+
+                if (d.size() > 0) {
+                    for (Case c: [Select Id, CaseNumber, Subject, Description, Status, Owner.Name FROM Case WHERE ID IN: d]) {
+                        CaseOutput co = new CaseOutput();
+                        co.CaseNumber = c.CaseNumber;
+                        co.Status = c.Status;
+                        co.OwnerId = c.Owner.Name;
+                        co.Subject = c.Subject;
+                        co.Description = c.Description;
+                        getCaseStatus.add(co);
+                    }
+                }
+
+            }
         }
 
-          if(d.size()>0)
-          {
-             for(Case c:[Select id,CaseNumber,Subject,Description,Status,Owner.Name from Case Where ID IN:d])
-             {    
-                  CaseOutput co=new CaseOutput();
-                  co.CaseNumber=c.CaseNumber;
-                  co.Status=c.Status; 
-                  co.OwnerId=c.Owner.Name;
-                  co.Subject=c.Subject;
-                  co.Description=c.Description; 
-                  getCaseStatus.add(co);
-              } 
-          }
-
-      }
-   }   
-
- return getCaseStatus; 
-}
+        return getCaseStatus;
+    }
 }
